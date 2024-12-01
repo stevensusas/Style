@@ -7,7 +7,7 @@ on:
 
 env:
   PROJECT_ID: style-443423
-  SERVICE_NAME: backend
+  SERVICE_NAME: style-backend
   REGION: us-east1
   REGISTRY: us-east1-docker.pkg.dev  # Match the repository location
 
