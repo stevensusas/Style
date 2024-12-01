@@ -13,8 +13,13 @@ struct StyleApp: App {
     
     var body: some Scene {
         WindowGroup {
-            AuthView()
-                .environmentObject(userSession)
+            if userSession.isAuthenticated {
+                DashboardView() // Redirect to dashboard if logged in
+                    .environmentObject(userSession)
+            } else {
+                AuthView()
+                    .environmentObject(userSession)
+            }
         }
     }
 }
