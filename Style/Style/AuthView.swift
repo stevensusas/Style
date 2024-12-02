@@ -8,114 +8,125 @@ struct AuthView: View {
     @State private var confirmPassword: String = ""
     @State private var errorMessage: String = ""
     @State private var successMessage: String = ""
+    @State private var isLoggedIn: Bool = false // Tracks if login was successful
 
     var body: some View {
-        ZStack {
-            // Background Gradient
-            LinearGradient(
-                gradient: Gradient(colors: [Color.blue.opacity(0.6), Color.purple]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
-            
-            // Foreground Content
-            VStack {
-                // App Title
-                Text("VogueVault")
-                    .font(.largeTitle)
-                    .fontWeight(.heavy)
-                    .foregroundColor(.white)
-                    .shadow(radius: 10)
-                    .padding(.top, 50)
+        NavigationView {
+            ZStack {
+                // Background Gradient
+                LinearGradient(
+                    gradient: Gradient(colors: [Color.blue.opacity(0.6), Color.purple]),
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .ignoresSafeArea()
 
-                Spacer()
-
-                // Picker Toggle
-                Picker("", selection: $isSignUp) {
-                    Text("Login").tag(false)
-                    Text("Sign Up").tag(true)
-                }
-                .pickerStyle(SegmentedPickerStyle())
-                .padding()
-                .background(Color.white.opacity(0.2))
-                .cornerRadius(10)
-                .padding(.horizontal)
-
-                // Form Fields
-                VStack(spacing: 15) {
-                    TextField("Username", text: $username)
-                        .padding()
-                        .background(Color.white.opacity(0.2))
-                        .cornerRadius(10)
+                // Foreground Content
+                VStack {
+                    // App Title
+                    Text("VogueVault")
+                        .font(.largeTitle)
+                        .fontWeight(.heavy)
                         .foregroundColor(.white)
-                        .autocapitalization(.none)
-                        .disableAutocorrection(true)
+                        .shadow(radius: 10)
+                        .padding(.top, 50)
 
-                    SecureField("Password", text: $password)
-                        .padding()
-                        .background(Color.white.opacity(0.2))
-                        .cornerRadius(10)
-                        .foregroundColor(.white)
+                    Spacer()
 
-                    if isSignUp {
-                        SecureField("Confirm Password", text: $confirmPassword)
+                    // Picker Toggle
+                    Picker("", selection: $isSignUp) {
+                        Text("Login").tag(false)
+                        Text("Sign Up").tag(true)
+                    }
+                    .pickerStyle(SegmentedPickerStyle())
+                    .padding()
+                    .background(Color.white.opacity(0.2))
+                    .cornerRadius(10)
+                    .padding(.horizontal)
+
+                    // Form Fields
+                    VStack(spacing: 15) {
+                        TextField("Username", text: $username)
                             .padding()
                             .background(Color.white.opacity(0.2))
                             .cornerRadius(10)
                             .foregroundColor(.white)
+                            .autocapitalization(.none)
+                            .disableAutocorrection(true)
+
+                        SecureField("Password", text: $password)
+                            .padding()
+                            .background(Color.white.opacity(0.2))
+                            .cornerRadius(10)
+                            .foregroundColor(.white)
+
+                        if isSignUp {
+                            SecureField("Confirm Password", text: $confirmPassword)
+                                .padding()
+                                .background(Color.white.opacity(0.2))
+                                .cornerRadius(10)
+                                .foregroundColor(.white)
+                        }
                     }
+                    .padding(.horizontal, 30)
+                    .padding(.top, 20)
+
+                    // Submit Button
+                    Button(action: handleSubmit) {
+                        Text(isSignUp ? "Sign Up" : "Login")
+                            .fontWeight(.bold)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(LinearGradient(
+                                gradient: Gradient(colors: [Color.pink, Color.orange]),
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            ))
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
+                            .shadow(radius: 5)
+                    }
+                    .padding(.horizontal, 30)
+                    .padding(.top, 20)
+
+                    // Error or Success Messages
+                    if !errorMessage.isEmpty {
+                        Text(errorMessage)
+                            .foregroundColor(.red)
+                            .fontWeight(.semibold)
+                            .padding(.top, 10)
+                    }
+
+                    if !successMessage.isEmpty {
+                        Text(successMessage)
+                            .foregroundColor(.green)
+                            .fontWeight(.semibold)
+                            .padding(.top, 10)
+                    }
+
+                    Spacer()
+
+                    // Footer
+                    Text("By signing up, you agree to our Terms and Privacy Policy.")
+                        .font(.footnote)
+                        .foregroundColor(.white.opacity(0.8))
+                        .multilineTextAlignment(.center)
+                        .padding(.bottom, 20)
                 }
-                .padding(.horizontal, 30)
-                .padding(.top, 20)
 
-                // Submit Button
-                Button(action: handleSubmit) {
-                    Text(isSignUp ? "Sign Up" : "Login")
-                        .fontWeight(.bold)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(LinearGradient(
-                            gradient: Gradient(colors: [Color.pink, Color.orange]),
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        ))
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                        .shadow(radius: 5)
+                // Navigate to ProfileView when logged in
+                NavigationLink(
+                    destination: ProfileView().environmentObject(userSession),
+                    isActive: $isLoggedIn
+                ) {
+                    EmptyView()
                 }
-                .padding(.horizontal, 30)
-                .padding(.top, 20)
-
-                // Error or Success Messages
-                if !errorMessage.isEmpty {
-                    Text(errorMessage)
-                        .foregroundColor(.red)
-                        .fontWeight(.semibold)
-                        .padding(.top, 10)
-                }
-
-                if !successMessage.isEmpty {
-                    Text(successMessage)
-                        .foregroundColor(.green)
-                        .fontWeight(.semibold)
-                        .padding(.top, 10)
-                }
-
-                Spacer()
-
-                // Footer
-                Text("By signing up, you agree to our Terms and Privacy Policy.")
-                    .font(.footnote)
-                    .foregroundColor(.white.opacity(0.8))
-                    .multilineTextAlignment(.center)
-                    .padding(.bottom, 20)
             }
-        }
-        .onAppear {
-            // Clear messages on view load
-            errorMessage = ""
-            successMessage = ""
+            .onAppear {
+                // Clear messages on view load
+                errorMessage = ""
+                successMessage = ""
+            }
         }
     }
 
@@ -149,6 +160,7 @@ struct AuthView: View {
                         successMessage = "Login successful!"
                         errorMessage = ""
                         userSession.login(username: userDetails["username"] as! String) // Update UserSession
+                        isLoggedIn = true // Trigger navigation to ProfileView
                     case .failure(let error):
                         errorMessage = error.localizedDescription
                         successMessage = ""

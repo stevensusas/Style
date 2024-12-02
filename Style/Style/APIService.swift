@@ -2,7 +2,7 @@ import Foundation
 
 class APIService {
     static let shared = APIService()
-    private let baseURL = "http://localhost:8000" // Your FastAPI backend URL
+    private let baseURL = "https://style-backend-315518144493.us-east1.run.app" // Your FastAPI backend URL
 
     // Sign up a user
     func signUp(username: String, password: String, completion: @escaping (Result<String, Error>) -> Void) {
@@ -66,6 +66,50 @@ class APIService {
             }
 
             completion(.success(json))
+        }.resume()
+    }
+    
+    func fetchUserDiscounts(username: String, completion: @escaping (Result<[String], Error>) -> Void) {
+        let url = URL(string: "\(baseURL)/users/\(username)/deals")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+
+            guard let data = data,
+                  let json = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] else {
+                completion(.failure(NSError(domain: "", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to parse data"])))
+                return
+            }
+
+            let discounts = json.compactMap { $0["description"] as? String }
+            completion(.success(discounts))
+        }.resume()
+    }
+
+    // Fetch total discounts
+    func fetchTotalDiscounts(username: String, completion: @escaping (Result<Int, Error>) -> Void) {
+        let url = URL(string: "\(baseURL)/users/\(username)/deals")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+
+            guard let data = data,
+                  let json = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] else {
+                completion(.failure(NSError(domain: "", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to parse data"])))
+                return
+            }
+
+            completion(.success(json.count))
         }.resume()
     }
 }

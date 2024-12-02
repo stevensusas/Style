@@ -14,7 +14,7 @@ struct StyleApp: App {
     var body: some Scene {
         WindowGroup {
             if userSession.isAuthenticated {
-                DashboardView() // Redirect to dashboard if logged in
+                ProfileView() // Redirect to dashboard if logged in
                     .environmentObject(userSession)
             } else {
                 AuthView()
