@@ -2,7 +2,7 @@ import Foundation
 
 class APIService {
     static let shared = APIService()
-    private let baseURL = "http://localhost:8000" // Your FastAPI backend URL
+    private let baseURL = "https://style-backend-315518144493.us-east1.run.app" // Your FastAPI backend URL
 
     // Sign up a user
     func signUp(username: String, password: String, completion: @escaping (Result<String, Error>) -> Void) {
