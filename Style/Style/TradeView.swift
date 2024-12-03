@@ -1,10 +1,5 @@
 import SwiftUI
 
-struct Deal: Identifiable {
-    let id: String
-    let description: String
-}
-
 struct DealCard: View {
     let deal: Deal
     let onSwipe: (Bool) -> Void
@@ -13,21 +8,30 @@ struct DealCard: View {
     
     var body: some View {
         ZStack {
-            Rectangle()
-                .fill(.white)
-                .frame(width: 320, height: 420)
-                .cornerRadius(16)
+            RoundedRectangle(cornerRadius: 20)
+                .fill(Color.white.opacity(0.9))
                 .shadow(radius: 10)
             
-            VStack {
+            VStack(spacing: 20) {
+                Text("New Deal!")
+                    .font(.title3)
+                    .fontWeight(.bold)
+                    .foregroundColor(.blue)
+                
                 Text(deal.description)
-                    .font(.system(size: 24, weight: .bold))
+                    .font(.system(size: 24, weight: .medium))
                     .multilineTextAlignment(.center)
+                    .foregroundColor(.black)
                     .padding(.horizontal)
                 
-                // Add more deal details here as needed
+                Image(systemName: "tag.fill")
+                    .font(.system(size: 40))
+                    .foregroundColor(Color.orange)
+                    .padding()
             }
+            .padding()
         }
+        .frame(width: 320, height: 420)
         .offset(x: offset.width, y: offset.height * 0.4)
         .rotationEffect(.degrees(Double(offset.width / 40)))
         .gesture(
@@ -63,31 +67,96 @@ struct TradeView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                VStack {
-                    ZStack {
-                        ForEach(deals.suffix(2).reversed()) { deal in
-                            DealCard(deal: deal) { swiped in
-                                handleSwipe(deal: deal, liked: swiped)
-                                removeTopCard()
+                // Background gradient
+                LinearGradient(
+                    gradient: Gradient(colors: [Color.blue.opacity(0.2), Color.purple.opacity(0.4)]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
+                
+                VStack(spacing: 20) {
+                    if isLoading {
+                        Spacer()
+                        ProgressView()
+                            .scaleEffect(1.5)
+                            .padding()
+                            .background(Color.white.opacity(0.9))
+                            .cornerRadius(10)
+                        Spacer()
+                    } else if let error = errorMessage {
+                        Spacer()
+                        VStack {
+                            Image(systemName: "exclamationmark.triangle")
+                                .font(.system(size: 50))
+                                .foregroundColor(.red)
+                                .padding()
+                            Text(error)
+                                .foregroundColor(.red)
+                                .multilineTextAlignment(.center)
+                                .padding()
+                        }
+                        .background(Color.white.opacity(0.9))
+                        .cornerRadius(15)
+                        .shadow(radius: 5)
+                        .padding()
+                        Spacer()
+                    } else if deals.isEmpty {
+                        Spacer()
+                        VStack(spacing: 20) {
+                            Image(systemName: "cart.badge.minus")
+                                .font(.system(size: 60))
+                                .foregroundColor(.gray)
+                            Text("No Deals Available")
+                                .font(.title2)
+                                .fontWeight(.medium)
+                                .foregroundColor(.gray)
+                            Text("Check back later for new deals!")
+                                .font(.subheadline)
+                                .foregroundColor(.gray.opacity(0.8))
+                        }
+                        .padding(40)
+                        .background(Color.white.opacity(0.9))
+                        .cornerRadius(15)
+                        .shadow(radius: 5)
+                        .padding()
+                        Spacer()
+                    } else {
+                        // Deals cards
+                        ZStack {
+                            ForEach(deals.suffix(2).reversed()) { deal in
+                                DealCard(deal: deal) { swiped in
+                                    handleSwipe(deal: deal, liked: swiped)
+                                    removeTopCard()
+                                }
                             }
                         }
-                    }
-                    
-                    if deals.isEmpty {
-                        Text("No more deals available!")
-                            .font(.headline)
-                            .foregroundColor(.gray)
-                    }
-                }
-                
-                if isLoading {
-                    ProgressView()
-                }
-                
-                if let error = errorMessage {
-                    Text(error)
-                        .foregroundColor(.red)
+                        .padding(.horizontal)
+                        
+                        // Swipe instructions
+                        HStack(spacing: 40) {
+                            VStack {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundColor(.red)
+                                    .font(.system(size: 30))
+                                Text("Skip")
+                                    .foregroundColor(.gray)
+                            }
+                            
+                            VStack {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(.green)
+                                    .font(.system(size: 30))
+                                Text("Save")
+                                    .foregroundColor(.gray)
+                            }
+                        }
                         .padding()
+                        .background(Color.white.opacity(0.9))
+                        .cornerRadius(15)
+                        .shadow(radius: 5)
+                        .padding(.bottom)
+                    }
                 }
             }
             .navigationTitle("Discover Deals")

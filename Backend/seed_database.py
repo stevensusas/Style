@@ -1,65 +1,63 @@
 from pymongo import MongoClient
 from bson import ObjectId
 
-# MongoDB connection (using the same connection string from your main.py)
+# MongoDB connection
 client = MongoClient(
     "mongodb+srv://default:12345678abc@style.wxs7m.mongodb.net/?retryWrites=true&w=majority&appName=Style"
 )
 db = client["default"]
-users_collection = db["users"]
 deals_collection = db["deals"]
+
+# Sample deals data
+deals = [
+    {"description": "50% off at Nike - Valid until end of month"},
+    {"description": "Buy one get one free at Adidas"},
+    {"description": "30% off all shoes at Foot Locker"},
+    {"description": "$20 off orders over $100 at ASOS"},
+    {"description": "Free shipping at Zara"},
+    {"description": "20% student discount at H&M"},
+    {"description": "15% off first purchase at Uniqlo"},
+    {"description": "$15 off orders over $75 at Urban Outfitters"},
+    {"description": "40% off clearance items at Nordstrom"},
+    {"description": "25% off sitewide at Lululemon"},
+    {"description": "Free gift with purchase at Sephora"},
+    {"description": "10% off your first order at SSENSE"},
+    {"description": "3 for 2 on all basics at GAP"},
+    {"description": "Members get 20% off at Macy's"},
+    {"description": "$50 off orders over $200 at Bloomingdale's"},
+    {"description": "Free returns at ASOS"},
+    {"description": "2 for $30 t-shirts at Old Navy"},
+    {"description": "Extra 10% off sale items at Zara"},
+    {"description": "Free shipping over $50 at Nike"},
+    {"description": "Student discount - 15% off at Adidas"},
+    {"description": "Buy 2 get 1 free at Foot Locker"},
+    {"description": "30% off new arrivals at H&M"},
+    {"description": "Spend $100 get $20 back at Uniqlo"},
+    {"description": "Members only: 25% off at Urban Outfitters"},
+    {"description": "Flash sale: 40% off at Nordstrom"},
+]
 
 
 def seed_database():
-    # First, let's create some deals
-    deals = [
-        {"_id": str(ObjectId()), "description": "50% off at Nike Store"},
-        {"_id": str(ObjectId()), "description": "Buy 1 Get 1 Free at Starbucks"},
-        {"_id": str(ObjectId()), "description": "$20 off first Uber ride"},
-        {"_id": str(ObjectId()), "description": "30% discount on Amazon Electronics"},
-        {"_id": str(ObjectId()), "description": "Free delivery on FoodPanda"},
-    ]
+    # Clear existing deals
+    deals_collection.delete_many({})
 
-    # Insert deals
-    deals_collection.insert_many(deals)
-    print("Deals added successfully!")
+    # Insert new deals
+    for deal in deals:
+        deal["_id"] = str(ObjectId())  # Generate a new ObjectId as string
+        deals_collection.insert_one(deal)
 
-    # Create some users with empty friends/deals lists
-    users = [
-        {
-            "username": "john_doe",
-            "password": "password123",
-            "friends": [],
-            "deals": [
-                deals[0]["_id"],
-                deals[1]["_id"],
-            ],  # Adding first two deals to this user
-        },
-        {
-            "username": "jane_smith",
-            "password": "password456",
-            "friends": [],
-            "deals": [deals[2]["_id"]],  # Adding third deal to this user
-        },
-        {
-            "username": "bob_wilson",
-            "password": "password789",
-            "friends": [],
-            "deals": [],  # No deals for this user
-        },
-    ]
+    print(f"Successfully seeded {len(deals)} deals")
 
-    # Insert users
-    users_collection.insert_many(users)
-    print("Users added successfully!")
+    # Verify the deals were added
+    count = deals_collection.count_documents({})
+    print(f"Total deals in database: {count}")
+
+    # Print first few deals as sample
+    print("\nSample deals:")
+    for deal in deals_collection.find().limit(3):
+        print(f"- {deal['description']}")
 
 
 if __name__ == "__main__":
-    # Clear existing data (optional)
-    users_collection.delete_many({})
-    deals_collection.delete_many({})
-    print("Existing data cleared!")
-
-    # Seed the database
     seed_database()
-    print("Database seeded successfully!")

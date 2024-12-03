@@ -1,21 +1,19 @@
 import SwiftUI
 
 struct ProfileView: View {
-    @EnvironmentObject var userSession: UserSession // Access UserSession for username
-    @State private var discounts: [String] = [] // Discounts fetched from the backend
-    @State private var totalDiscounts: Int = 0 // Total discounts fetched from the backend
-    @State private var errorMessage: String = "" // Error message to display in case of API failure
-
+    @EnvironmentObject var userSession: UserSession
+    @State private var discounts: [String] = []
+    @State private var totalDiscounts: Int = 0
+    @State private var errorMessage: String = ""
+    
     var body: some View {
         VStack(spacing: 20) {
-            // Welcome Message
             Text("Welcome, \(userSession.username ?? "Guest")!")
                 .font(.largeTitle)
                 .fontWeight(.bold)
                 .foregroundColor(.blue)
                 .padding(.top, 20)
             
-            // Error Message (if any)
             if !errorMessage.isEmpty {
                 Text(errorMessage)
                     .foregroundColor(.red)
@@ -23,9 +21,8 @@ struct ProfileView: View {
                     .padding(.horizontal)
             }
             
-            // Top 3 Discounts Widget
             VStack(alignment: .leading, spacing: 10) {
-                Text("Your Top Discounts")
+                Text("Your Discounts")
                     .font(.headline)
                     .padding(.bottom, 5)
                 
@@ -34,17 +31,22 @@ struct ProfileView: View {
                         .foregroundColor(.gray)
                         .font(.subheadline)
                 } else {
-                    ForEach(discounts.prefix(3), id: \.self) { discount in
-                        HStack {
-                            Text("• \(discount)")
-                                .font(.body)
-                                .foregroundColor(.black)
-                            Spacer()
+                    ScrollView {
+                        LazyVStack(spacing: 10) {
+                            ForEach(discounts, id: \.self) { discount in
+                                HStack {
+                                    Text("• \(discount)")
+                                        .font(.body)
+                                        .foregroundColor(.black)
+                                    Spacer()
+                                }
+                                .padding(.vertical, 5)
+                                .padding(.horizontal)
+                                .background(Color.blue.opacity(0.1))
+                                .cornerRadius(10)
+                            }
                         }
-                        .padding(.vertical, 5)
                         .padding(.horizontal)
-                        .background(Color.blue.opacity(0.1))
-                        .cornerRadius(10)
                     }
                 }
             }
@@ -54,15 +56,14 @@ struct ProfileView: View {
             .shadow(radius: 5)
             .padding(.horizontal)
             
-            Spacer()
-            
-            // Widgets for Total Discounts
             HStack(spacing: 20) {
                 DiscountStatWidget(title: "Total Discounts", value: "\(totalDiscounts)")
                 DiscountStatWidget(title: "Active Discounts", value: "\(discounts.count)")
                 DiscountStatWidget(title: "Expired Discounts", value: "\(totalDiscounts - discounts.count)")
             }
             .padding(.bottom, 20)
+            
+            Spacer()
         }
         .background(
             LinearGradient(

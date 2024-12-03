@@ -163,4 +163,28 @@ class APIService {
             completion(.success(()))
         }.resume()
     }
+
+    func fetchRandomDeal(username: String, completion: @escaping (Result<Deal, Error>) -> Void) {
+        let url = URL(string: "\(baseURL)/users/\(username)/random-deal")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+
+            guard let data = data,
+                  let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  let id = json["_id"] as? String,
+                  let description = json["description"] as? String else {
+                completion(.failure(NSError(domain: "", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to parse data"])))
+                return
+            }
+
+            let deal = Deal(id: id, description: description)
+            completion(.success(deal))
+        }.resume()
+    }
 }

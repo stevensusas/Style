@@ -27,7 +27,7 @@ struct StyleApp: App {
                         }
                         .tag(Tab.friends)
                     
-                    Text("Feed View")
+                    FeedView()
                         .tabItem {
                             Image(systemName: "house.fill")
                             Text("Feed")
