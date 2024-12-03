@@ -3,6 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from pymongo import MongoClient
 from pydantic import BaseModel
 from fastapi import HTTPException
+import random
+from bson import ObjectId
+
 
 app = FastAPI()
 
@@ -213,3 +216,22 @@ async def get_user_deals(username: str):
         deal["_id"] = str(deal["_id"])
 
     return deals
+
+@app.get("/deals/random")
+async def get_random_deal():
+    """
+    Get a random deal from the deals collection
+
+    Returns:
+        dict: A random deal with its details
+
+    Raises:
+        HTTPException (404): If no deals are found
+    """
+    deals = list(deals_collection.find({}))
+    if not deals:
+        raise HTTPException(status_code=404, detail="No deals found")
+
+    random_deal = random.choice(deals)
+    random_deal["_id"] = str(random_deal["_id"])  # Convert ObjectId to string
+    return random_deal
