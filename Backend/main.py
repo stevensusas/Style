@@ -217,41 +217,25 @@ async def get_user_deals(username: str):
 
     return deals
 
-@app.get("/users/{username}/new-deals")
-async def get_new_deals(username: str):
-    """
-    Get all deals not in user's collection
 
-    Parameters:
-        username (str): Target user's username
+@app.get("/deals/random")
+async def get_random_deal():
+    """
+    Get a random deal from the deals collection
 
     Returns:
-        list: Array of deals not in user's collection
+        dict: A random deal with its details
 
     Raises:
-        HTTPException (404): If user not found
+        HTTPException (404): If no deals are found
     """
-    # Find user
-    user = users_collection.find_one({"username": username})
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+    deals = list(deals_collection.find({}))
+    if not deals:
+        raise HTTPException(status_code=404, detail="No deals found")
 
-    # Get user's existing deals
-    user_deals = user.get("deals", [])
-
-    # Find all deals that are not in user's deals list
-    new_deals = list(
-        deals_collection.find(
-            {"_id": {"$nin": user_deals}},
-            {"_id": 1, "brand": 1, "description": 1},  # Include fields
-        )
-    )
-
-    # Convert ObjectId to string for JSON response
-    for deal in new_deals:
-        deal["_id"] = str(deal["_id"])
-
-    return new_deals
+    random_deal = random.choice(deals)
+    random_deal["_id"] = str(random_deal["_id"])  # Convert ObjectId to string
+    return random_deal
 
 @app.get("/users/{username}/deals")
 async def get_user_deals(username: str):
@@ -287,3 +271,39 @@ async def get_user_deals(username: str):
         deal["_id"] = str(deal["_id"])
 
     return deals
+
+@app.get("/users/{username}/new-deals")
+async def get_new_deals(username: str):
+    """
+    Get all deals not in user's collection
+
+    Parameters:
+        username (str): Target user's username
+
+    Returns:
+        list: Array of deals not in user's collection
+
+    Raises:
+        HTTPException (404): If user not found
+    """
+    # Find user
+    user = users_collection.find_one({"username": username})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Get user's existing deals
+    user_deals = user.get("deals", [])
+
+    # Find all deals that are not in user's deals list
+    new_deals = list(
+        deals_collection.find(
+            {"_id": {"$nin": user_deals}},
+            {"_id": 1, "brand": 1, "description": 1},  # Include fields
+        )
+    )
+
+    # Convert ObjectId to string for JSON response
+    for deal in new_deals:
+        deal["_id"] = str(deal["_id"])
+
+    return new_deals
