@@ -26,6 +26,13 @@ users_collection = db["users"]
 deals_collection = db["deals"]
 
 
+class Trade(BaseModel):
+    from_user: str
+    to_user: str
+    from_deal_id: str
+    to_deal_id: str
+
+
 # Basic Item model
 class User(BaseModel):
     username: str
@@ -164,6 +171,7 @@ async def get_random_deal():
     random_deal["_id"] = str(random_deal["_id"])  # Convert ObjectId to string
     return random_deal
 
+
 @app.get("/users/{username}/deals")
 async def get_user_deals(username: str):
     """
@@ -198,6 +206,7 @@ async def get_user_deals(username: str):
         deal["_id"] = str(deal["_id"])
 
     return deals
+
 
 @app.get("/users/{username}/new-deals")
 async def get_new_deals(username: str):
@@ -235,6 +244,7 @@ async def get_new_deals(username: str):
 
     return new_deals
 
+
 # Trade endpoint
 @app.post("/trades/confirm")
 async def confirm_trade(trade: Trade):
@@ -251,19 +261,20 @@ async def confirm_trade(trade: Trade):
     except:
         raise HTTPException(status_code=400, detail="Invalid deal IDs")
 
-    if from_deal_id not in from_user.get("deals", []):
+    # Convert ObjectIds to strings for comparison
+    if str(from_deal_id) not in from_user.get("deals", []):
         raise HTTPException(status_code=400, detail="From user does not own the deal")
-    if to_deal_id not in to_user.get("deals", []):
+    if str(to_deal_id) not in to_user.get("deals", []):
         raise HTTPException(status_code=400, detail="To user does not own the deal")
 
-    # Perform the trade
+    # Perform the trade using string IDs
     users_collection.update_one(
         {"username": trade.from_user},
-        {"$pull": {"deals": from_deal_id}, "$push": {"deals": to_deal_id}},
+        {"$pull": {"deals": str(from_deal_id)}, "$push": {"deals": str(to_deal_id)}},
     )
     users_collection.update_one(
         {"username": trade.to_user},
-        {"$pull": {"deals": to_deal_id}, "$push": {"deals": from_deal_id}},
+        {"$pull": {"deals": str(to_deal_id)}, "$push": {"deals": str(from_deal_id)}},
     )
 
     return {"message": "Trade completed successfully"}
