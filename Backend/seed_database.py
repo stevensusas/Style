@@ -12,52 +12,42 @@ deals_collection = db["deals"]
 def seed_database():
     deals = [
         {
-            "_id": str(ObjectId()),
             "brand": "Zara",
             "description": "20% off on all dresses",
         },
         {
-            "_id": str(ObjectId()),
             "brand": "H&M",
             "description": "Buy 2 get 1 free on T-shirts",
         },
         {
-            "_id": str(ObjectId()),
             "brand": "Uniqlo",
             "description": "15% off on winter collection",
         },
         {
-            "_id": str(ObjectId()),
             "brand": "Nike",
             "description": "30% off on sneakers",
         },
         {
-            "_id": str(ObjectId()),
             "brand": "Adidas",
             "description": "25% off on sportswear",
         },
         {
-            "_id": str(ObjectId()),
             "brand": "Gucci",
             "description": "Exclusive 40% off on handbags",
         },
         {
-            "_id": str(ObjectId()),
             "brand": "Louis Vuitton",
             "description": "50% off on selected items",
         },
         {
-            "_id": str(ObjectId()),
             "brand": "Prada",
             "description": "35% off on eyewear",
         },
         {
-            "_id": str(ObjectId()),
             "brand": "Hermès",
             "description": "Special discount on scarves",
         },
         {
-            "_id": str(ObjectId()),
             "brand": "Burberry",
             "description": "Free gift with any purchase over $200",
         },
@@ -66,6 +56,8 @@ def seed_database():
 
     # Insert deals
     deals_collection.insert_many(deals)
+    deals_ids = deals.inserted_ids
+
     print("Deals added successfully!")
 
     # Create some users with empty friends/deals lists

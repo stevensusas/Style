@@ -145,79 +145,6 @@ async def add_deal_to_user(username: str, deal_id: str):
     }
 
 
-@app.get("/users/{username}/new-deals")
-async def get_new_deals(username: str):
-    """
-    Get all deals not in user's collection
-
-    Parameters:
-        username (str): Target user's username
-
-    Returns:
-        list: Array of deals not in user's collection
-
-    Raises:
-        HTTPException (404): If user not found
-    """
-    # Find user
-    user = users_collection.find_one({"username": username})
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    # Get user's existing deals
-    user_deals = user.get("deals", [])
-
-    # Find all deals that are not in user's deals list
-    new_deals = list(
-        deals_collection.find(
-            {"_id": {"$nin": user_deals}},
-            {"_id": 1, "description": 1},  # Include only _id and description fields
-        )
-    )
-
-    # Convert ObjectId to string for JSON response
-    for deal in new_deals:
-        deal["_id"] = str(deal["_id"])
-
-    return new_deals
-
-
-@app.get("/users/{username}/deals")
-async def get_user_deals(username: str):
-    """
-    Get all deals in user's collection
-
-    Parameters:
-        username (str): Target user's username
-
-    Returns:
-        list: Array of deals in user's collection
-
-    Raises:
-        HTTPException (404): If user not found
-    """
-    # Find user
-    user = users_collection.find_one({"username": username})
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    # Get user's deals
-    user_deals = user.get("deals", [])
-
-    # Fetch all deals that are in user's deals list
-    deals = list(
-        deals_collection.find(
-            {"_id": {"$in": user_deals}}, {"_id": 1, "description": 1}
-        )
-    )
-
-    # Convert ObjectId to string for JSON response
-    for deal in deals:
-        deal["_id"] = str(deal["_id"])
-
-    return deals
-
-
 @app.get("/deals/random")
 async def get_random_deal():
     """
@@ -307,3 +234,36 @@ async def get_new_deals(username: str):
         deal["_id"] = str(deal["_id"])
 
     return new_deals
+
+# Trade endpoint
+@app.post("/trades/confirm")
+async def confirm_trade(trade: Trade):
+    from_user = users_collection.find_one({"username": trade.from_user})
+    if not from_user:
+        raise HTTPException(status_code=404, detail="From user not found")
+    to_user = users_collection.find_one({"username": trade.to_user})
+    if not to_user:
+        raise HTTPException(status_code=404, detail="To user not found")
+
+    try:
+        from_deal_id = ObjectId(trade.from_deal_id)
+        to_deal_id = ObjectId(trade.to_deal_id)
+    except:
+        raise HTTPException(status_code=400, detail="Invalid deal IDs")
+
+    if from_deal_id not in from_user.get("deals", []):
+        raise HTTPException(status_code=400, detail="From user does not own the deal")
+    if to_deal_id not in to_user.get("deals", []):
+        raise HTTPException(status_code=400, detail="To user does not own the deal")
+
+    # Perform the trade
+    users_collection.update_one(
+        {"username": trade.from_user},
+        {"$pull": {"deals": from_deal_id}, "$push": {"deals": to_deal_id}},
+    )
+    users_collection.update_one(
+        {"username": trade.to_user},
+        {"$pull": {"deals": to_deal_id}, "$push": {"deals": from_deal_id}},
+    )
+
+    return {"message": "Trade completed successfully"}
