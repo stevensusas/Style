@@ -217,21 +217,73 @@ async def get_user_deals(username: str):
 
     return deals
 
-@app.get("/deals/random")
-async def get_random_deal():
+@app.get("/users/{username}/new-deals")
+async def get_new_deals(username: str):
     """
-    Get a random deal from the deals collection
+    Get all deals not in user's collection
+
+    Parameters:
+        username (str): Target user's username
 
     Returns:
-        dict: A random deal with its details
+        list: Array of deals not in user's collection
 
     Raises:
-        HTTPException (404): If no deals are found
+        HTTPException (404): If user not found
     """
-    deals = list(deals_collection.find({}))
-    if not deals:
-        raise HTTPException(status_code=404, detail="No deals found")
+    # Find user
+    user = users_collection.find_one({"username": username})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
 
-    random_deal = random.choice(deals)
-    random_deal["_id"] = str(random_deal["_id"])  # Convert ObjectId to string
-    return random_deal
+    # Get user's existing deals
+    user_deals = user.get("deals", [])
+
+    # Find all deals that are not in user's deals list
+    new_deals = list(
+        deals_collection.find(
+            {"_id": {"$nin": user_deals}},
+            {"_id": 1, "brand": 1, "description": 1},  # Include fields
+        )
+    )
+
+    # Convert ObjectId to string for JSON response
+    for deal in new_deals:
+        deal["_id"] = str(deal["_id"])
+
+    return new_deals
+
+@app.get("/users/{username}/deals")
+async def get_user_deals(username: str):
+    """
+    Get all deals in user's collection
+
+    Parameters:
+        username (str): Target user's username
+
+    Returns:
+        list: Array of deals in user's collection
+
+    Raises:
+        HTTPException (404): If user not found
+    """
+    # Find user
+    user = users_collection.find_one({"username": username})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Get user's deals
+    user_deals = user.get("deals", [])
+
+    # Fetch all deals that are in user's deals list
+    deals = list(
+        deals_collection.find(
+            {"_id": {"$in": user_deals}}, {"_id": 1, "brand": 1, "description": 1}
+        )
+    )
+
+    # Convert ObjectId to string for JSON response
+    for deal in deals:
+        deal["_id"] = str(deal["_id"])
+
+    return deals
