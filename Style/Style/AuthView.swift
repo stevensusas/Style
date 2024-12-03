@@ -20,7 +20,7 @@ struct AuthView: View {
                     endPoint: .bottomTrailing
                 )
                 .ignoresSafeArea()
-
+                
                 // Foreground Content
                 VStack {
                     // App Title
@@ -30,9 +30,9 @@ struct AuthView: View {
                         .foregroundColor(.white)
                         .shadow(radius: 10)
                         .padding(.top, 50)
-
+                    
                     Spacer()
-
+                    
                     // Picker Toggle
                     Picker("", selection: $isSignUp) {
                         Text("Login").tag(false)
@@ -43,7 +43,7 @@ struct AuthView: View {
                     .background(Color.white.opacity(0.2))
                     .cornerRadius(10)
                     .padding(.horizontal)
-
+                    
                     // Form Fields
                     VStack(spacing: 15) {
                         TextField("Username", text: $username)
@@ -53,13 +53,13 @@ struct AuthView: View {
                             .foregroundColor(.white)
                             .autocapitalization(.none)
                             .disableAutocorrection(true)
-
+                        
                         SecureField("Password", text: $password)
                             .padding()
                             .background(Color.white.opacity(0.2))
                             .cornerRadius(10)
                             .foregroundColor(.white)
-
+                        
                         if isSignUp {
                             SecureField("Confirm Password", text: $confirmPassword)
                                 .padding()
@@ -70,7 +70,7 @@ struct AuthView: View {
                     }
                     .padding(.horizontal, 30)
                     .padding(.top, 20)
-
+                    
                     // Submit Button
                     Button(action: handleSubmit) {
                         Text(isSignUp ? "Sign Up" : "Login")
@@ -88,7 +88,7 @@ struct AuthView: View {
                     }
                     .padding(.horizontal, 30)
                     .padding(.top, 20)
-
+                    
                     // Error or Success Messages
                     if !errorMessage.isEmpty {
                         Text(errorMessage)
@@ -96,16 +96,16 @@ struct AuthView: View {
                             .fontWeight(.semibold)
                             .padding(.top, 10)
                     }
-
+                    
                     if !successMessage.isEmpty {
                         Text(successMessage)
                             .foregroundColor(.green)
                             .fontWeight(.semibold)
                             .padding(.top, 10)
                     }
-
+                    
                     Spacer()
-
+                    
                     // Footer
                     Text("By signing up, you agree to our Terms and Privacy Policy.")
                         .font(.footnote)
@@ -113,23 +113,28 @@ struct AuthView: View {
                         .multilineTextAlignment(.center)
                         .padding(.bottom, 20)
                 }
-
+                
                 // Navigate to ProfileView when logged in
-                NavigationLink(
-                    destination: ProfileView().environmentObject(userSession),
-                    isActive: $isLoggedIn
-                ) {
-                    EmptyView()
+                NavigationLink(value: "ProfileView") {
+                    EmptyView() // This can remain empty if navigation is programmatically triggered
+                }
+                .navigationDestination(for: String.self) { value in
+                    if value == "ProfileView" {
+                        ProfileView()
+                            .environmentObject(userSession)
+                    }
                 }
             }
-            .onAppear {
-                // Clear messages on view load
-                errorMessage = ""
-                successMessage = ""
+            .onChange(of: isLoggedIn) { // Updated to use the new syntax
+                if isLoggedIn {
+                    // Trigger navigation programmatically
+                    DispatchQueue.main.async {
+                        // Implement navigation logic here
+                    }
+                }
             }
         }
     }
-
     // Handle form submission
     func handleSubmit() {
         if isSignUp {
