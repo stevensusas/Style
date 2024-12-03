@@ -20,12 +20,6 @@ struct StyleApp: App {
         WindowGroup {
             if userSession.isAuthenticated {
                 TabView(selection: $selectedTab) {
-                    Text("Friends View")
-                        .tabItem {
-                            Image(systemName: "person.2.fill")
-                            Text("Friends")
-                        }
-                        .tag(Tab.friends)
                     
                     FeedView()
                         .tabItem {

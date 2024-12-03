@@ -24,7 +24,7 @@ struct AuthView: View {
                 // Foreground Content
                 VStack {
                     // App Title
-                    Text("VogueVault")
+                    Text("Style")
                         .font(.largeTitle)
                         .fontWeight(.heavy)
                         .foregroundColor(.white)

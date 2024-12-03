@@ -7,6 +7,7 @@ client = MongoClient(
 )
 db = client["default"]
 deals_collection = db["deals"]
+users_collection = db["users"]
 
 # Sample deals data
 deals = [
@@ -38,9 +39,16 @@ deals = [
 ]
 
 
-def seed_database():
-    # Clear existing deals
+def clear_database():
+    # Clear existing deals and users
     deals_collection.delete_many({})
+    users_collection.delete_many({})
+    print("Successfully cleared all deals and users from database")
+
+
+def seed_database():
+    # First clear the database
+    clear_database()
 
     # Insert new deals
     for deal in deals:
@@ -50,8 +58,10 @@ def seed_database():
     print(f"Successfully seeded {len(deals)} deals")
 
     # Verify the deals were added
-    count = deals_collection.count_documents({})
-    print(f"Total deals in database: {count}")
+    deals_count = deals_collection.count_documents({})
+    users_count = users_collection.count_documents({})
+    print(f"Total deals in database: {deals_count}")
+    print(f"Total users in database: {users_count}")
 
     # Print first few deals as sample
     print("\nSample deals:")
