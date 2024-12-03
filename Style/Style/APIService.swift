@@ -4,14 +4,12 @@ class APIService {
     static let shared = APIService()
     private let baseURL = "https://style-backend-315518144493.us-east1.run.app" // Your FastAPI backend URL
 
-    // Sign up a user
     func signUp(username: String, password: String, completion: @escaping (Result<String, Error>) -> Void) {
         let url = URL(string: "\(baseURL)/signup")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        // Request body
         let body = [
             "username": username,
             "password": password,
@@ -20,7 +18,6 @@ class APIService {
         ] as [String : Any]
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
 
-        // Send request
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
                 completion(.failure(error))
@@ -36,21 +33,18 @@ class APIService {
         }.resume()
     }
 
-    // Log in a user
     func logIn(username: String, password: String, completion: @escaping (Result<[String: Any], Error>) -> Void) {
         let url = URL(string: "\(baseURL)/login")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        // Request body
         let body = [
             "username": username,
             "password": password
         ]
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
 
-        // Send request
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
                 completion(.failure(error))
@@ -91,7 +85,6 @@ class APIService {
         }.resume()
     }
 
-    // Fetch total discounts
     func fetchTotalDiscounts(username: String, completion: @escaping (Result<Int, Error>) -> Void) {
         let url = URL(string: "\(baseURL)/users/\(username)/deals")!
         var request = URLRequest(url: url)
@@ -112,7 +105,6 @@ class APIService {
             completion(.success(json.count))
         }.resume()
     }
-    // ... existing code ...
 
     func fetchNewDeals(username: String, completion: @escaping (Result<[Deal], Error>) -> Void) {
         let url = URL(string: "\(baseURL)/users/\(username)/new-deals")!

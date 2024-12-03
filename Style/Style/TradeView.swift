@@ -67,7 +67,6 @@ struct TradeView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                // Background gradient
                 LinearGradient(
                     gradient: Gradient(colors: [Color.blue.opacity(0.2), Color.purple.opacity(0.4)]),
                     startPoint: .top,
@@ -122,7 +121,6 @@ struct TradeView: View {
                         .padding()
                         Spacer()
                     } else {
-                        // Deals cards
                         ZStack {
                             ForEach(deals.suffix(2).reversed()) { deal in
                                 DealCard(deal: deal) { swiped in

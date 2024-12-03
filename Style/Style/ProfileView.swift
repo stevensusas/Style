@@ -78,14 +78,12 @@ struct ProfileView: View {
         }
     }
 
-    // Fetch user discounts and stats from backend
     private func loadUserData() {
         guard let username = userSession.username else {
             errorMessage = "Username not found."
             return
         }
 
-        // Fetch discounts and total discounts in parallel
         APIService.shared.fetchUserDiscounts(username: username) { result in
             switch result {
             case .success(let userDiscounts):
@@ -114,7 +112,6 @@ struct ProfileView: View {
     }
 }
 
-// Widget for displaying discount stats
 struct DiscountStatWidget: View {
     let title: String
     let value: String
@@ -141,7 +138,6 @@ struct DiscountStatWidget: View {
     }
 }
 
-// Tab Bar with 4 items
 struct TabBar: View {
     @State private var selectedTab: Tab
 
@@ -155,7 +151,6 @@ struct TabBar: View {
 
     var body: some View {
         HStack {
-            // Friends Tab
             Button(action: { selectedTab = .friends }) {
                 VStack {
                     Image(systemName: "person.2.fill")
@@ -167,7 +162,6 @@ struct TabBar: View {
             }
             Spacer()
 
-            // Feed Tab
             Button(action: { selectedTab = .feed }) {
                 VStack {
                     Image(systemName: "house.fill")
@@ -179,7 +173,6 @@ struct TabBar: View {
             }
             Spacer()
 
-            // Trade Tab
             Button(action: {
                 selectedTab = .trade
             }) {
@@ -193,7 +186,6 @@ struct TabBar: View {
             }
             Spacer()
 
-            // Profile Tab
             Button(action: { selectedTab = .profile }) {
                 VStack {
                     Image(systemName: "person.fill")

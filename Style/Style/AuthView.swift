@@ -1,19 +1,18 @@
 import SwiftUI
 
 struct AuthView: View {
-    @EnvironmentObject var userSession: UserSession // Access UserSession as a shared state
+    @EnvironmentObject var userSession: UserSession
     @State private var isSignUp: Bool = false
     @State private var username: String = ""
     @State private var password: String = ""
     @State private var confirmPassword: String = ""
     @State private var errorMessage: String = ""
     @State private var successMessage: String = ""
-    @State private var isLoggedIn: Bool = false // Tracks if login was successful
+    @State private var isLoggedIn: Bool = false
 
     var body: some View {
         NavigationView {
             ZStack {
-                // Background Gradient
                 LinearGradient(
                     gradient: Gradient(colors: [Color.blue.opacity(0.6), Color.purple]),
                     startPoint: .topLeading,
@@ -21,9 +20,7 @@ struct AuthView: View {
                 )
                 .ignoresSafeArea()
 
-                // Foreground Content
                 VStack {
-                    // App Title
                     Text("Style")
                         .font(.largeTitle)
                         .fontWeight(.heavy)
@@ -33,7 +30,6 @@ struct AuthView: View {
 
                     Spacer()
 
-                    // Picker Toggle
                     Picker("", selection: $isSignUp) {
                         Text("Login").tag(false)
                         Text("Sign Up").tag(true)
@@ -44,7 +40,6 @@ struct AuthView: View {
                     .cornerRadius(10)
                     .padding(.horizontal)
 
-                    // Form Fields
                     VStack(spacing: 15) {
                         TextField("Username", text: $username)
                             .padding()
@@ -71,7 +66,6 @@ struct AuthView: View {
                     .padding(.horizontal, 30)
                     .padding(.top, 20)
 
-                    // Submit Button
                     Button(action: handleSubmit) {
                         Text(isSignUp ? "Sign Up" : "Login")
                             .fontWeight(.bold)
@@ -89,7 +83,6 @@ struct AuthView: View {
                     .padding(.horizontal, 30)
                     .padding(.top, 20)
 
-                    // Error or Success Messages
                     if !errorMessage.isEmpty {
                         Text(errorMessage)
                             .foregroundColor(.red)
@@ -106,7 +99,6 @@ struct AuthView: View {
 
                     Spacer()
 
-                    // Footer
                     Text("By signing up, you agree to our Terms and Privacy Policy.")
                         .font(.footnote)
                         .foregroundColor(.white.opacity(0.8))
@@ -114,7 +106,6 @@ struct AuthView: View {
                         .padding(.bottom, 20)
                 }
 
-                // Navigate to ProfileView when logged in
                 NavigationLink(
                     destination: ProfileView().environmentObject(userSession),
                     isActive: $isLoggedIn
@@ -123,17 +114,14 @@ struct AuthView: View {
                 }
             }
             .onAppear {
-                // Clear messages on view load
                 errorMessage = ""
                 successMessage = ""
             }
         }
     }
 
-    // Handle form submission
     func handleSubmit() {
         if isSignUp {
-            // Handle Sign Up
             guard password == confirmPassword else {
                 errorMessage = "Passwords do not match"
                 return
@@ -152,15 +140,14 @@ struct AuthView: View {
                 }
             }
         } else {
-            // Handle Login
             APIService.shared.logIn(username: username, password: password) { result in
                 DispatchQueue.main.async {
                     switch result {
                     case .success(let userDetails):
                         successMessage = "Login successful!"
                         errorMessage = ""
-                        userSession.login(username: userDetails["username"] as! String) // Update UserSession
-                        isLoggedIn = true // Trigger navigation to ProfileView
+                        userSession.login(username: userDetails["username"] as! String)
+                        isLoggedIn = true
                     case .failure(let error):
                         errorMessage = error.localizedDescription
                         successMessage = ""

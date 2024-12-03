@@ -197,7 +197,6 @@ struct FeedView: View {
     }
     
     private func startTimer() {
-        // Update time remaining every minute
         Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { _ in
             updateTimeUntilNextDeal()
         }
@@ -255,7 +254,6 @@ struct FeedView: View {
         }
     }
     
-    // Make Deal conform to Codable if not already done
     struct FeedView_Previews: PreviewProvider {
         static var previews: some View {
             FeedView()
