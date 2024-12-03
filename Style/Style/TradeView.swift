@@ -141,11 +141,7 @@ struct TradeView: View {
             )
             .ignoresSafeArea()
         )
-        .toolbar {
-            ToolbarItemGroup(placement: .bottomBar) {
-                TabBar(selectedTab: .trade)
-            }
-        }
+        
     }
 
     // MARK: - Actions

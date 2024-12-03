@@ -207,4 +207,93 @@ class APIService {
                 completion(.success(json))
             }.resume()
         }
+    
+    
+    
+        // Fetch a random coupon
+        func fetchRandomCoupon(completion: @escaping (Result<Coupon, Error>) -> Void) {
+            let url = URL(string: "\(baseURL)/coupons/random")!
+            var request = URLRequest(url: url)
+            request.httpMethod = "GET"
+
+            URLSession.shared.dataTask(with: request) { data, response, error in
+                if let error = error {
+                    completion(.failure(error))
+                    return
+                }
+
+                guard let data = data,
+                      let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                      let id = json["id"] as? String,
+                      let brand = json["brand"] as? String,
+                      let description = json["description"] as? String,
+                      let imageURL = json["image_url"] as? String else {
+                    completion(.failure(NSError(domain: "", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to fetch random coupon"])))
+                    return
+                }
+
+                let coupon = Coupon(id: id, brand: brand, description: description, imageURL: imageURL)
+                completion(.success(coupon))
+            }.resume()
+        }
+
+        // Claim a coupon
+        func claimCoupon(username: String, couponId: String, completion: @escaping (Result<String, Error>) -> Void) {
+            let url = URL(string: "\(baseURL)/users/\(username)/claim")!
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+            let body = [
+                "coupon_id": couponId
+            ]
+            request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+
+            URLSession.shared.dataTask(with: request) { data, response, error in
+                if let error = error {
+                    completion(.failure(error))
+                    return
+                }
+
+                guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+                    completion(.failure(NSError(domain: "", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to claim coupon"])))
+                    return
+                }
+
+                completion(.success("Coupon claimed successfully"))
+            }.resume()
+        }
+    
+
+        // Update fetchUserDiscounts to return [Coupon]
+        func fetchUserDiscounts(username: String, completion: @escaping (Result<[Coupon], Error>) -> Void) {
+            let url = URL(string: "\(baseURL)/users/\(username)/deals")!
+            var request = URLRequest(url: url)
+            request.httpMethod = "GET"
+
+            URLSession.shared.dataTask(with: request) { data, response, error in
+                if let error = error {
+                    completion(.failure(error))
+                    return
+                }
+
+                guard let data = data,
+                      let jsonArray = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] else {
+                    completion(.failure(NSError(domain: "", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to parse data"])))
+                    return
+                }
+
+                let coupons = jsonArray.compactMap { dict -> Coupon? in
+                    guard let id = dict["id"] as? String,
+                          let brand = dict["brand"] as? String,
+                          let description = dict["description"] as? String,
+                          let imageURL = dict["image_url"] as? String else {
+                        return nil
+                    }
+                    return Coupon(id: id, brand: brand, description: description, imageURL: imageURL)
+                }
+                completion(.success(coupons))
+            }.resume()
+        }
 }
+

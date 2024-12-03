@@ -165,7 +165,7 @@ struct AuthView: View {
                         successMessage = "Login successful!"
                         errorMessage = ""
                         userSession.login(username: userDetails["username"] as! String) // Update UserSession
-                        isLoggedIn = true // Trigger navigation to ProfileView
+                        
                     case .failure(let error):
                         errorMessage = error.localizedDescription
                         successMessage = ""

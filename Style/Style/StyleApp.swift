@@ -9,17 +9,11 @@ import SwiftUI
 
 @main
 struct StyleApp: App {
-    @StateObject private var userSession = UserSession()
-    
+    @StateObject var userSession = UserSession()
     var body: some Scene {
         WindowGroup {
-            if userSession.isAuthenticated {
-                ProfileView() // Redirect to dashboard if logged in
-                    .environmentObject(userSession)
-            } else {
-                AuthView()
-                    .environmentObject(userSession)
-            }
+            ContentView()
+                .environmentObject(userSession)
         }
     }
 }

@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ProfileView: View {
     @EnvironmentObject var userSession: UserSession // Access UserSession for username
-    @State private var discounts: [String] = [] // Discounts fetched from the backend
+    @State private var discounts: [Coupon] = [] // Discounts fetched from the backend
     @State private var totalDiscounts: Int = 0 // Total discounts fetched from the backend
     @State private var errorMessage: String = "" // Error message to display in case of API failure
 
@@ -34,9 +34,9 @@ struct ProfileView: View {
                         .foregroundColor(.gray)
                         .font(.subheadline)
                 } else {
-                    ForEach(discounts.prefix(3), id: \.self) { discount in
+                    ForEach(discounts.prefix(3), id: \.self) { coupon in
                         HStack {
-                            Text("• \(discount)")
+                            Text("• \(coupon.brand): \(coupon.description)")
                                 .font(.body)
                                 .foregroundColor(.black)
                             Spacer()
@@ -75,11 +75,7 @@ struct ProfileView: View {
         .onAppear {
             loadUserData()
         }
-        .toolbar {
-            ToolbarItemGroup(placement: .bottomBar) {
-                TabBar(selectedTab: .profile)
-            }
-        }
+        
     }
 
     // Fetch user discounts and stats from backend
@@ -145,32 +141,15 @@ struct DiscountStatWidget: View {
     }
 }
 
-// Tab Bar with 4 items
 struct TabBar: View {
-    @State private var selectedTab: Tab
+    @Binding var selectedTab: Tab
 
-    enum Tab {
-        case friends, feed, trade, profile
-    }
-
-    init(selectedTab: Tab) {
-        self._selectedTab = State(initialValue: selectedTab)
+    enum Tab: CaseIterable {
+        case feed, trade, profile
     }
 
     var body: some View {
         HStack {
-            // Friends Tab
-            Button(action: { selectedTab = .friends }) {
-                VStack {
-                    Image(systemName: "person.2.fill")
-                        .foregroundColor(selectedTab == .friends ? .blue : .gray)
-                    Text("Friends")
-                        .font(.caption)
-                        .foregroundColor(selectedTab == .friends ? .blue : .gray)
-                }
-            }
-            Spacer()
-
             // Feed Tab
             Button(action: { selectedTab = .feed }) {
                 VStack {
