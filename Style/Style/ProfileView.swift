@@ -14,7 +14,7 @@ struct ProfileView: View {
                 .fontWeight(.bold)
                 .foregroundColor(.blue)
                 .padding(.top, 20)
-
+            
             // Error Message (if any)
             if !errorMessage.isEmpty {
                 Text(errorMessage)
@@ -22,13 +22,13 @@ struct ProfileView: View {
                     .fontWeight(.semibold)
                     .padding(.horizontal)
             }
-
+            
             // Top 3 Discounts Widget
             VStack(alignment: .leading, spacing: 10) {
                 Text("Your Top Discounts")
                     .font(.headline)
                     .padding(.bottom, 5)
-
+                
                 if discounts.isEmpty {
                     Text("You have no discounts yet.")
                         .foregroundColor(.gray)
@@ -53,9 +53,9 @@ struct ProfileView: View {
             .cornerRadius(15)
             .shadow(radius: 5)
             .padding(.horizontal)
-
+            
             Spacer()
-
+            
             // Widgets for Total Discounts
             HStack(spacing: 20) {
                 DiscountStatWidget(title: "Total Discounts", value: "\(totalDiscounts)")
@@ -74,11 +74,6 @@ struct ProfileView: View {
         )
         .onAppear {
             loadUserData()
-        }
-        .toolbar {
-            ToolbarItemGroup(placement: .bottomBar) {
-                TabBar(selectedTab: .profile)
-            }
         }
     }
 
@@ -184,7 +179,9 @@ struct TabBar: View {
             Spacer()
 
             // Trade Tab
-            Button(action: { selectedTab = .trade }) {
+            Button(action: {
+                selectedTab = .trade
+            }) {
                 VStack {
                     Image(systemName: "cart.fill")
                         .foregroundColor(selectedTab == .trade ? .blue : .gray)
