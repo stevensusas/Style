@@ -12,7 +12,7 @@ struct FeedView: View {
     // Keys for UserDefaults
     private let lastUpdateKey = "lastDealUpdateTime"
     private let currentDealKey = "currentDealData"
-    private let dealSavedKey = "dealSavedToday"
+    private let userDealSavedKey = "userDealSavedStates"
     
     var body: some View {
         NavigationView {
@@ -99,7 +99,10 @@ struct FeedView: View {
     }
     
     private func checkIfDealSaved() {
-        isDealSaved = UserDefaults.standard.bool(forKey: dealSavedKey)
+        guard let username = userSession.username else { return }
+        if let savedStates = UserDefaults.standard.dictionary(forKey: userDealSavedKey) as? [String: Bool] {
+            isDealSaved = savedStates[username] ?? false
+        }
     }
     
     private func addDealToCollection(_ deal: Deal) {
@@ -112,7 +115,9 @@ struct FeedView: View {
                 switch result {
                 case .success:
                     isDealSaved = true
-                    UserDefaults.standard.set(true, forKey: dealSavedKey)
+                    var savedStates = UserDefaults.standard.dictionary(forKey: userDealSavedKey) as? [String: Bool] ?? [:]
+                    savedStates[username] = true
+                    UserDefaults.standard.set(savedStates, forKey: userDealSavedKey)
                 case .failure(let error):
                     errorMessage = error.localizedDescription
                 }
@@ -120,7 +125,64 @@ struct FeedView: View {
         }
     }
     
-    // Helper Views
+    private func startTimer() {
+        Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { _ in
+            updateTimeUntilNextDeal()
+        }
+        updateTimeUntilNextDeal()
+    }
+    
+    private func updateTimeUntilNextDeal() {
+        let calendar = Calendar.current
+        let now = Date()
+        let tomorrow = calendar.startOfDay(for: calendar.date(byAdding: .day, value: 1, to: now) ?? now)
+        let components = calendar.dateComponents([.hour, .minute], from: now, to: tomorrow)
+        
+        if let hours = components.hour, let minutes = components.minute {
+            timeUntilNextDeal = "\(hours)h \(minutes)m"
+        }
+    }
+    
+    private func checkAndUpdateDeal() {
+        let lastUpdate = UserDefaults.standard.object(forKey: lastUpdateKey) as? Date ?? Date(timeIntervalSince1970: 0)
+        let calendar = Calendar.current
+        
+        if !calendar.isDateInToday(lastUpdate) {
+            fetchNewDeal()
+        } else {
+            // Load cached deal
+            if let dealData = UserDefaults.standard.data(forKey: currentDealKey),
+               let deal = try? JSONDecoder().decode(Deal.self, from: dealData) {
+                self.currentDeal = deal
+            } else {
+                fetchNewDeal()
+            }
+        }
+    }
+    
+    private func fetchNewDeal() {
+        guard let username = userSession.username else { return }
+        isLoading = true
+        errorMessage = nil
+        
+        APIService.shared.fetchRandomDeal(username: username) { result in
+            DispatchQueue.main.async {
+                isLoading = false
+                switch result {
+                case .success(let deal):
+                    self.currentDeal = deal
+                    // Cache the deal and update time
+                    if let dealData = try? JSONEncoder().encode(deal) {
+                        UserDefaults.standard.set(dealData, forKey: currentDealKey)
+                        UserDefaults.standard.set(Date(), forKey: lastUpdateKey)
+                    }
+                case .failure(let error):
+                    self.errorMessage = error.localizedDescription
+                }
+            }
+        }
+    }
+    
     private struct DealSavedView: View {
         let timeUntilNextDeal: String
         
@@ -195,69 +257,11 @@ struct FeedView: View {
             .padding()
         }
     }
-    
-    private func startTimer() {
-        Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { _ in
-            updateTimeUntilNextDeal()
-        }
-        updateTimeUntilNextDeal()
-    }
-    
-    private func updateTimeUntilNextDeal() {
-        let calendar = Calendar.current
-        let now = Date()
-        let tomorrow = calendar.startOfDay(for: calendar.date(byAdding: .day, value: 1, to: now) ?? now)
-        let components = calendar.dateComponents([.hour, .minute], from: now, to: tomorrow)
-        
-        if let hours = components.hour, let minutes = components.minute {
-            timeUntilNextDeal = "\(hours)h \(minutes)m"
-        }
-    }
-    
-    private func checkAndUpdateDeal() {
-        let lastUpdate = UserDefaults.standard.object(forKey: lastUpdateKey) as? Date ?? Date(timeIntervalSince1970: 0)
-        let calendar = Calendar.current
-        
-        if !calendar.isDateInToday(lastUpdate) {
-            fetchNewDeal()
-        } else {
-            // Load cached deal
-            if let dealData = UserDefaults.standard.data(forKey: currentDealKey),
-               let deal = try? JSONDecoder().decode(Deal.self, from: dealData) {
-                self.currentDeal = deal
-            } else {
-                fetchNewDeal()
-            }
-        }
-    }
-    
-    private func fetchNewDeal() {
-        guard let username = userSession.username else { return }
-        isLoading = true
-        errorMessage = nil
-        
-        APIService.shared.fetchRandomDeal(username: username) { result in
-            DispatchQueue.main.async {
-                isLoading = false
-                switch result {
-                case .success(let deal):
-                    self.currentDeal = deal
-                    // Cache the deal and update time
-                    if let dealData = try? JSONEncoder().encode(deal) {
-                        UserDefaults.standard.set(dealData, forKey: currentDealKey)
-                        UserDefaults.standard.set(Date(), forKey: lastUpdateKey)
-                    }
-                case .failure(let error):
-                    self.errorMessage = error.localizedDescription
-                }
-            }
-        }
-    }
-    
-    struct FeedView_Previews: PreviewProvider {
-        static var previews: some View {
-            FeedView()
-                .environmentObject(UserSession())
-        }
+}
+
+struct FeedView_Previews: PreviewProvider {
+    static var previews: some View {
+        FeedView()
+            .environmentObject(UserSession())
     }
 }
